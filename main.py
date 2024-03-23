@@ -3,7 +3,9 @@ import os
 import mss
 import cv2
 import numpy as np
+
 import config
+import display
 
 from win32gui import FindWindow, GetWindowRect
 from time import sleep
@@ -12,14 +14,16 @@ from time import sleep
 class BuffBar:
     def __init__(self):
         self.buffs = config.BUFFS_LIST
+
         self.ms_coords = {}
         self.buff_coords = {}
+        self.buff_imgs = {}
+
         self.ms_curr = None
 
-        self.set_ms_window()
-        self.set_buff_coords()
+        self.update_all()
 
-    def set_ms_window(self):
+    def set_ms_coords(self):
         window_handle = FindWindow(None, "MapleStory")
         try:
             window_rect = GetWindowRect(window_handle)
@@ -30,15 +34,14 @@ class BuffBar:
                           "width": window_rect[2] - window_rect[0], "height": window_rect[3] - window_rect[1]}
         self.ms_coords["height"] = int(self.ms_coords["height"] / 2)
 
-    def set_buff_coords(self):
-        for item in self.buffs:
-            path = os.path.join(os.path.dirname(os.path.realpath(__file__)), f"resources/{item}.png")
-            templ = cv2.imread(f"{path}")
-            self.set_ms_curr()
-            self.buff_coords[item] = self.calc_buff_anchor(templ)
-
     def set_ms_curr(self):
         self.ms_curr = screenshot(self.ms_coords)
+
+    def set_buff_coords(self, buff):
+        path = os.path.join(os.path.dirname(os.path.realpath(__file__)), f"resources/{buff}.png")
+        templ = cv2.imread(f"{path}")
+        self.set_ms_curr()
+        self.buff_coords[buff] = self.calc_buff_anchor(templ)
 
     def calc_buff_anchor(self, template):
         """
@@ -52,12 +55,24 @@ class BuffBar:
         res = cv2.matchTemplate(img_gray, template_gray, cv2.TM_CCOEFF_NORMED)
         # look for local max (threshold > 0.60) when using CCOEFF_NORMED
         threshold = 0.6
+
         if len(np.where(res >= threshold)[1]) < 1:  # template not found
             return None
 
-        return dict(left=np.where(res >= threshold)[1] + self.ms_coords["left"],
-                    top=np.where(res >= threshold)[0] + self.ms_coords["top"],
-                    width=template.shape[1], height=template.shape[0])
+        loc_x = self.ms_coords["left"] + np.where(res >= threshold)[1][0]
+        loc_y = self.ms_coords["top"] + np.where(res >= threshold)[0][0]
+
+        return dict(left=loc_x, top=loc_y, width=template.shape[1],
+                    height=template.shape[0])
+
+    def update_all(self):
+        self.set_ms_coords()
+        for item in self.buffs:
+            self.set_buff_coords(item)
+            if self.buff_coords[item]:
+                self.buff_imgs[item] = screenshot(self.buff_coords[item])
+            else:
+                self.buff_imgs[item] = None
 
 
 def screenshot(rect):
@@ -74,7 +89,9 @@ def main():
     # cv2.imshow('test', bb.ms_curr)
     # cv2.waitKey()
     for k in bb.buff_coords.keys():
-        print(f"{k}: {bb.buff_coords[k]}")
+        if bb.buff_coords[k]:
+            cv2.imshow('test', bb.buff_imgs[k])
+            cv2.waitKey()
     return
 
 
