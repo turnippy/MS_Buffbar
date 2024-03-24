@@ -31,14 +31,6 @@ class Display:
             imgs_in[item].convert_to_tk()
             self.images[item] = imgs_in[item]
 
-        for item in config.BUFFS_LIST:
-            if not imgs_in[item].blank:
-                img_big = cv2.resize(imgs_in[item],(config.BUFF_ZOOM_DIM, config.BUFF_ZOOM_DIM))
-                img_pil = PIL.ImageTk.PhotoImage(image=PIL.Image.fromarray(img_big))
-                self.images[item] = img_pil
-            else:
-                self.images[item] = None
-
     def draw(self):
         """
         refreshes canvaas with images from self.images
