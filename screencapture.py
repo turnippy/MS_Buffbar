@@ -1,15 +1,21 @@
 import os
+import threading
 import mss
 import cv2
 import numpy as np
 
 import config
+import util
 
 from win32gui import FindWindow, GetWindowRect
+from time import sleep
 
 
 class BuffBar:
     def __init__(self):
+        self.thread = threading.Thread(target=self.main_loop, daemon=True)
+        self.thread_active = False
+
         self.buffs = config.BUFFS_LIST
 
         self.ms_coords = {}
@@ -67,9 +73,23 @@ class BuffBar:
         for item in self.buffs:
             self.set_buff_coords(item)
             if self.buff_coords[item]:
-                self.buff_imgs[item] = screenshot(self.buff_coords[item])
+                self.buff_imgs[item] = util.ImgWrapper(img_np=screenshot(self.buff_coords[item]))
             else:
-                self.buff_imgs[item] = None
+                self.buff_imgs[item] = util.ImgWrapper(blank=True)
+
+    def main_loop(self):
+        while self.thread_active:
+            sleep(100)
+            self.update_all()
+
+    def start(self):
+        self.thread_active = True
+        self.thread.start()
+        print("\tStarting screen capture thread...")
+
+    def stop(self):
+        self.thread_active = False
+        print("\tStopping screen capture thread...")
 
 
 def screenshot(rect):
