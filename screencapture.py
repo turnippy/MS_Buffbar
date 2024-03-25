@@ -79,10 +79,11 @@ class BuffBar:
 
     def main_loop(self):
         while self.thread_active:
-            sleep(100)
+            sleep(0.1)
             self.update_all()
+            # print("\tBuffbar mainloop")
 
-    def start(self):
+    def run(self):
         self.thread_active = True
         self.thread.start()
         print("\tStarting screen capture thread...")
@@ -99,3 +100,17 @@ def screenshot(rect):
     """
     with mss.mss() as sct:
         return np.array(sct.grab(rect))
+
+
+if __name__ == '__main__':
+    test = BuffBar()
+    test.run()
+    sleep(3)
+    test.stop()
+
+    for k in test.buff_imgs:
+        if test.buff_imgs[k].isblank:
+            print(f"{k} not found")
+            continue
+        cv2.imshow(k, test.buff_imgs[k].img_np)
+        cv2.waitKey()

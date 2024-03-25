@@ -17,21 +17,25 @@ class App:
     def get_and_load_imgs(self):
         while self.thread_active:
             self.d.load_images(self.bb.buff_imgs)
-            sleep(100)
+            sleep(0.1)
 
-    def start(self):
+    def run(self):
+        print("\tStarting app thread...")
         self.thread_active = True
         self.thread.start()
 
     def stop(self):
+        print("\tStopping app thread...")
         self.thread_active = False
 
 
 def main():
     a = App()
-    a.bb.start()
-    a.start()
-    a.d.start()
+    a.bb.run()
+    a.run()
+    a.d.run_mainloop()
+    a.bb.stop()
+    a.stop()
 
 
 if __name__ == '__main__':

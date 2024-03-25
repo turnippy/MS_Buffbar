@@ -1,6 +1,5 @@
 import tkinter as tk
 
-import PIL.Image, PIL.ImageTk
 import cv2
 import numpy as np
 
@@ -33,7 +32,7 @@ class Display:
 
     def draw(self):
         """
-        refreshes canvaas with images from self.images
+        refreshes canvas with images from self.images
         :return: None
         """
         pad = 0
@@ -54,7 +53,8 @@ class Display:
 
         self.root.after(100, self.update)
 
-    def start(self):
+    def run_mainloop(self):
+        print("\tStarting tkinter mainloop...")
         self.root.mainloop()
 
 
@@ -62,9 +62,8 @@ if __name__ == "__main__":
     test = Display()
     tdict = {}
     for i in config.BUFFS_LIST:
-        tdict[i] = np.array(cv2.cvtColor(cv2.imread(f"resources/{i}.png"), cv2.COLOR_BGR2RGB))
+        tdict[i] = util.ImgWrapper(np.array(cv2.cvtColor(cv2.imread(f"resources/{i}.png"), cv2.COLOR_BGR2RGB)))
     test.load_images(tdict)
     print("images loaded")
     test.update()
-    test.root.mainloop()
-    print("done")
+    test.run_mainloop()
