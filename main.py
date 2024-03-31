@@ -16,7 +16,7 @@ class App:
 
     def get_and_load_imgs(self):
         while self.thread_active:
-            self.d.load_images(self.bb.buff_imgs)
+            self.d.load_process_images(self.bb.buff_imgs)
             sleep(0.1)
 
     def run(self):
@@ -33,6 +33,7 @@ def main():
     a = App()
     a.bb.run()
     a.run()
+    a.d.update()
     a.d.run_mainloop()
     a.bb.stop()
     a.stop()

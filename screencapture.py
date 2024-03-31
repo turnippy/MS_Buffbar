@@ -53,11 +53,11 @@ class BuffBar:
         matching is done with cv2.matchTemplate()
         correlation is calculated using CCOEFF_NORMED
         """
-        img_gray = cv2.cvtColor(self.ms_curr, cv2.COLOR_BGR2GRAY)
+        img_gray = cv2.cvtColor(self.ms_curr.img_np, cv2.COLOR_BGRA2GRAY)
         template_gray = cv2.cvtColor(template, cv2.COLOR_BGR2GRAY)
         res = cv2.matchTemplate(img_gray, template_gray, cv2.TM_CCOEFF_NORMED)
         # look for local max (threshold > 0.60) when using CCOEFF_NORMED
-        threshold = 0.6
+        threshold = 0.5
 
         if len(np.where(res >= threshold)[1]) < 1:  # template not found
             return None
@@ -73,7 +73,7 @@ class BuffBar:
         for item in self.buffs:
             self.set_buff_coords(item)
             if self.buff_coords[item]:
-                self.buff_imgs[item] = util.ImgWrapper(img_np=screenshot(self.buff_coords[item]))
+                self.buff_imgs[item] = screenshot(self.buff_coords[item])
             else:
                 self.buff_imgs[item] = util.ImgWrapper(blank=True)
 
@@ -96,10 +96,10 @@ class BuffBar:
 def screenshot(rect):
     """
     :param rect: dict with keys left,top,height,width corresponding to absolute position on screen
-    :return: np array representing 3 channels of image
+    :return: ImgWrapper obj with np array representing BGRA image
     """
     with mss.mss() as sct:
-        return np.array(sct.grab(rect))
+        return util.ImgWrapper(img_np=np.array(sct.grab(rect)))
 
 
 if __name__ == '__main__':
@@ -112,5 +112,9 @@ if __name__ == '__main__':
         if test.buff_imgs[k].isblank:
             print(f"{k} not found")
             continue
+
+        test.buff_imgs[k].resize_to_config()
+        test.buff_imgs[k].convert_bgra_to_rgb()
         cv2.imshow(k, test.buff_imgs[k].img_np)
+        print(np.shape(test.buff_imgs[k].img_np))
         cv2.waitKey()

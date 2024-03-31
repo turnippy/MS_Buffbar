@@ -19,7 +19,11 @@ class Display:
                                 height=config.BUFF_ZOOM_DIM + 40)
         self.canvas.pack(padx=20, pady=20)
 
-    def load_images(self, imgs_in):
+        self.container = {}
+        for item in config.BUFFS_LIST:
+            self.container[item] = None
+
+    def load_process_images(self, imgs_in):
         """
         takes in a dict of ImgWrapper objects, upscales, and convert to PIL PhotoImage object
         :param imgs_in: dict with keys = buff name, value = np array of image
@@ -27,6 +31,7 @@ class Display:
         """
         for item in config.BUFFS_LIST:
             imgs_in[item].resize_to_config()
+            imgs_in[item].convert_bgra_to_rgb()
             imgs_in[item].convert_to_tk()
             self.images[item] = imgs_in[item]
 
@@ -36,22 +41,29 @@ class Display:
         :return: None
         """
         pad = 0
+
         for item in self.images:
-            if not self.images[item].isblank:
-                self.canvas.create_image(pad*(config.BUFF_ZOOM_DIM+20), 0,
-                                         image=self.images[item].img_tk, anchor=tk.NW)
+            img = self.images[item]
+            if self.container[item] is None:
+                if not self.images[item].isblank:
+                    self.container[item] = self.canvas.create_image(pad*(config.BUFF_ZOOM_DIM+20), 0,
+                                                                    image=img.img_tk, anchor=tk.NW)
+
+            else:
+                self.canvas.itemconfig(self.container[item], image=img.img_tk)
             pad += 1
+            self.images[item] = img
 
     def update(self):
         """
         tkinter root update, executes every 100ms
         :return: None
         """
-        if self.canvas:
-            self.canvas.delete("all")
+        # if self.canvas:
+        #     self.canvas.delete("all")
         self.draw()
 
-        self.root.after(100, self.update)
+        self.root.after(500, self.update)
 
     def run_mainloop(self):
         print("\tStarting tkinter mainloop...")
@@ -63,7 +75,7 @@ if __name__ == "__main__":
     tdict = {}
     for i in config.BUFFS_LIST:
         tdict[i] = util.ImgWrapper(np.array(cv2.cvtColor(cv2.imread(f"resources/{i}.png"), cv2.COLOR_BGR2RGB)))
-    test.load_images(tdict)
+    test.load_process_images(tdict)
     print("images loaded")
     test.update()
     test.run_mainloop()
