@@ -1,5 +1,3 @@
-import PIL.Image
-import PIL.ImageTk
 import cv2
 import numpy as np
 
@@ -20,9 +18,3 @@ class ImgWrapper:
     def resize_to_config(self):
         if not self.isblank:
             self.img_np = cv2.resize(self.img_np, (config.BUFF_ZOOM_DIM, config.BUFF_ZOOM_DIM))
-
-    def convert_to_tk(self):
-        # convert np array (BGRA) to ImageTk object (RGB)
-        if not self.isblank:
-            # temp = cv2.cvtColor(self.img_np, cv2.COLOR_BGRA2RGB)
-            self.img_tk = PIL.ImageTk.PhotoImage(image=PIL.Image.fromarray(self.img_np))
