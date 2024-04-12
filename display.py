@@ -50,7 +50,7 @@ class Display:
         """
         for item in config.BUFFS_LIST:
             imgs_in[item].resize_to_config()
-            imgs_in[item].convert_bgra_to_rgb()
+            # imgs_in[item].convert_bgra_to_rgb()
 
             self.images[item] = imgs_in[item]
 
