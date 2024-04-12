@@ -11,7 +11,7 @@ from win32gui import FindWindow, GetWindowRect
 from time import sleep
 
 
-class BuffBar:
+class ScreenCap:
     def __init__(self):
         self.thread = threading.Thread(target=self.main_loop, daemon=True)
         self.thread_active = False
@@ -81,7 +81,7 @@ class BuffBar:
         while self.thread_active:
             sleep(0.1)
             self.update_all()
-            # print("\tBuffbar mainloop")
+            # print("\ScreenCap mainloop")
 
     def run(self):
         self.thread_active = True
@@ -103,7 +103,7 @@ def screenshot(rect):
 
 
 if __name__ == '__main__':
-    test = BuffBar()
+    test = ScreenCap()
     test.run()
     sleep(3)
     test.stop()

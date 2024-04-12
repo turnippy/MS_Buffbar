@@ -1,7 +1,5 @@
-import tkinter as tk
-
-import cv2
-import numpy as np
+import pygame
+from pygame.locals import *
 
 import config
 import util
@@ -9,73 +7,54 @@ import util
 
 class Display:
     def __init__(self):
-        self.root = tk.Tk()
-        self.root.title("ENHANCED BUFF BAR")
 
         self.images = {}
 
-        self.canvas = tk.Canvas(self.root,
-                                width=len(config.BUFFS_LIST) * (config.BUFF_ZOOM_DIM + 40),
-                                height=config.BUFF_ZOOM_DIM + 40)
-        self.canvas.pack(padx=20, pady=20)
+        pygame.init()
+        self.padding = 20
+        self.width = len(config.BUFFS_LIST)*config.BUFF_ZOOM_DIM + (len(config.BUFFS_LIST)+1)*self.padding
+        self.height = config.BUFF_ZOOM_DIM + 2*self.padding
 
-        self.container = {}
-        for item in config.BUFFS_LIST:
-            self.container[item] = None
+        self.screen = pygame.display.set_mode(size=(self.width, self.height))
+
+        self.init_screen()
+
+        self.running = False
+
+    def init_screen(self):
+        self.screen.fill(Color('Grey'))
+
+    def run(self):
+        self.running = True
+        while self.running:
+
+            self.update()
+            pygame.display.update()
+
+            for event in pygame.event.get():
+                if event.type == QUIT:
+                    self.stop()
+
+    def stop(self):
+        self.running = False
+        pygame.quit()
+
+    def update(self):
+        pass
 
     def load_process_images(self, imgs_in):
         """
-        takes in a dict of ImgWrapper objects, upscales, and convert to PIL PhotoImage object
+        public setter for self.images
         :param imgs_in: dict with keys = buff name, value = np array of image
         :return: None
         """
         for item in config.BUFFS_LIST:
             imgs_in[item].resize_to_config()
             imgs_in[item].convert_bgra_to_rgb()
-            imgs_in[item].convert_to_tk()
+
             self.images[item] = imgs_in[item]
-
-    def draw(self):
-        """
-        refreshes canvas with images from self.images
-        :return: None
-        """
-        pad = 0
-
-        for item in self.images:
-            img = self.images[item]
-            if self.container[item] is None:
-                if not self.images[item].isblank:
-                    self.container[item] = self.canvas.create_image(pad*(config.BUFF_ZOOM_DIM+20), 0,
-                                                                    image=img.img_tk, anchor=tk.NW)
-
-            else:
-                self.canvas.itemconfig(self.container[item], image=img.img_tk)
-            pad += 1
-            self.images[item] = img
-
-    def update(self):
-        """
-        tkinter root update, executes every 100ms
-        :return: None
-        """
-        # if self.canvas:
-        #     self.canvas.delete("all")
-        self.draw()
-
-        self.root.after(500, self.update)
-
-    def run_mainloop(self):
-        print("\tStarting tkinter mainloop...")
-        self.root.mainloop()
 
 
 if __name__ == "__main__":
     test = Display()
-    tdict = {}
-    for i in config.BUFFS_LIST:
-        tdict[i] = util.ImgWrapper(np.array(cv2.cvtColor(cv2.imread(f"resources/{i}.png"), cv2.COLOR_BGR2RGB)))
-    test.load_process_images(tdict)
-    print("images loaded")
-    test.update()
-    test.run_mainloop()
+    test.run()
